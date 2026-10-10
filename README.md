@@ -10,6 +10,10 @@ These pictures use made-up sample files, not a real Mac.
 ![Not sure tab: your call](docs/screenshots/ask.png)
 ![Tidy my files: now and after](docs/screenshots/tidy.png)
 
+## Try it in your browser
+
+There is a demo with sample files in the `demo/` folder. It is a web page, so nothing on your computer is scanned or deleted. To put it online with Vercel, import this repo and set **Root Directory** to `demo`.
+
 ## Run it
 
 ```bash
