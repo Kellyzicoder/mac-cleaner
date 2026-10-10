@@ -2,6 +2,14 @@
 
 A Mac desktop app (Electron + React + TypeScript) that finds junk, explains **why it can go** and **why it might be better to stay**, and asks you when it is not sure.
 
+## What it looks like
+
+These pictures use made-up sample files, not a real Mac.
+
+![Safe to remove tab with the reasons open](docs/screenshots/safe.png)
+![Not sure tab: your call](docs/screenshots/ask.png)
+![Tidy my files: now and after](docs/screenshots/tidy.png)
+
 ## Run it
 
 ```bash
