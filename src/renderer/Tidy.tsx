@@ -155,6 +155,31 @@ export function Tidy() {
                     <p><b>What is in it:</b> {g.description}</p>
                     <p><b>Why these go together:</b> {g.why}</p>
                     {g.folderExists && <p className="muted">A folder with this name is already there. The files are added to it, and nothing is replaced.</p>}
+                    <div className="beforeafter">
+                      <div className="ba">
+                        <div className="batitle">Now</div>
+                        <div className="tree">
+                          <div>📂 {short(g.sourceDir).split('/').pop()}</div>
+                          {g.files.slice(0, 5).map((f) => (
+                            <div key={f.name} className="t1">📄 {f.name}</div>
+                          ))}
+                          {g.files.length > 5 && <div className="t1 muted">…and {g.files.length - 5} more loose files</div>}
+                        </div>
+                      </div>
+                      <div className="ba arrow" aria-hidden="true">→</div>
+                      <div className="ba">
+                        <div className="batitle">After</div>
+                        <div className="tree">
+                          <div>📂 {short(g.sourceDir).split('/').pop()}</div>
+                          <div className="t1">📁 <b>{g.folderName}</b></div>
+                          <div className="t2">📝 _About this folder.txt</div>
+                          {g.files.slice(0, 4).map((f) => (
+                            <div key={f.name} className="t2">📄 {f.name}</div>
+                          ))}
+                          {g.files.length > 4 && <div className="t2 muted">…and {g.files.length - 4} more</div>}
+                        </div>
+                      </div>
+                    </div>
                     <ul className="gfiles">
                       {g.files.map((f) => (
                         <li key={f.name}>
