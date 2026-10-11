@@ -10,6 +10,8 @@ import { humanSize, measure } from './fsutil';
 import { checkInUse, getSnapshot } from './apps';
 import { makePreview, previewTrash } from './preview';
 import { emptyTrash, trashInfo } from './trash';
+import { collectDash, ejectDevice, netSpeed, speedTest } from './sysinfo';
+import { allowedDiskPath, analyzeDisk, listChildren } from './diskmap';
 import { applyTidy, MoveLog, planTidy, rootProblem, undoTidy } from './organize';
 
 const home = os.homedir();
@@ -57,6 +59,7 @@ ipcMain.handle('scan', async (): Promise<Finding[]> => {
     onStep: (step) => win?.webContents.send('scan-progress', { step }),
   });
   lastScan = new Map(findings.map((f) => [f.id, f]));
+  await fs.writeFile(scanTimeFile(), String(Date.now())).catch(() => undefined);
   return findings;
 });
 
@@ -171,6 +174,51 @@ ipcMain.handle('empty-trash', async (): Promise<{ ok: boolean; message: string }
   const box = win ? await dialog.showMessageBox(win, options) : await dialog.showMessageBox(options);
   if (box.response !== 1) return { ok: false, message: 'Cancelled. Nothing was deleted.' };
   return emptyTrash();
+});
+
+function scanTimeFile(): string {
+  return path.join(app.getPath('userData'), 'last-scan.txt');
+}
+async function readLastScan(): Promise<number | null> {
+  try {
+    const n = Number((await fs.readFile(scanTimeFile(), 'utf8')).trim());
+    return Number.isFinite(n) && n > 0 ? n : null;
+  } catch {
+    return null;
+  }
+}
+
+/** Ids for the disk map. The window sends an id, never a path. */
+const diskIds = new Map<string, string>();
+let devices: { id: string; mount: string }[] = [];
+
+ipcMain.handle('dash-info', async () => {
+  const r = await collectDash(await readLastScan());
+  devices = r.devices.map((d) => ({ id: d.id, mount: d.mount }));
+  return r.info;
+});
+ipcMain.handle('net-speed', () => netSpeed());
+ipcMain.handle('speed-test', () => speedTest());
+ipcMain.handle('eject', async (_e, id: string) => {
+  const d = devices.find((x) => x.id === id);
+  if (!d) return { ok: false, message: 'That drive is not in the list. Refresh and try again.' };
+  return ejectDevice(d.mount);
+});
+ipcMain.handle('disk-analyze', async () => {
+  const info = await collectDash(null);
+  diskIds.clear();
+  return analyzeDisk(home, info.info.disk.totalBytes, info.info.disk.availableBytes, diskIds, (step) =>
+    win?.webContents.send('scan-progress', { step }),
+  );
+});
+ipcMain.handle('disk-children', async (_e, id: string) => {
+  const p = diskIds.get(id);
+  if (!p || !allowedDiskPath(p, home)) return [];
+  return listChildren(p, diskIds, 60);
+});
+ipcMain.handle('disk-reveal', (_e, id: string) => {
+  const p = diskIds.get(id);
+  if (p && allowedDiskPath(p, home)) shell.showItemInFolder(p);
 });
 
 let pickedFolder: string | null = null;
