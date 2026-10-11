@@ -2,6 +2,7 @@ import { promises as fs } from 'fs';
 import * as path from 'path';
 import { RawFinding, Safety } from '../shared/types';
 import { DAY, MB, measure, lstatSafe, humanSize } from './fsutil';
+import { protectedReason } from './safety';
 
 export interface Rule {
   id: string;
@@ -355,6 +356,7 @@ export async function runRules(home: string, onStep: (s: string) => void, now = 
     const items: { name: string; full: string; bytes: number; newest: number }[] = [];
     for (const name of names) {
       const full = path.join(base, name);
+      if (rule.mode === 'children' && protectedReason(full, home)) continue; // e.g. a project folder that holds Claude's memory
       const m = await measure(full);
       if (m.newest > cutoff) continue; // too recent, leave it
       items.push({ name, full, bytes: m.bytes, newest: m.newest });

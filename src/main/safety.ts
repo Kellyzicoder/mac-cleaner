@@ -1,3 +1,4 @@
+import { existsSync } from 'fs';
 import * as path from 'path';
 
 /**
@@ -57,6 +58,13 @@ export function protectedReason(target: string, home: string): string | null {
   const relPosix = segs.join('/');
   for (const pre of protectedPrefixes) {
     if (relPosix === pre || relPosix.startsWith(pre + '/')) return `It is in a protected place (${pre}).`;
+  }
+
+  // Claude Code keeps its saved memory in .claude/projects/<project>/memory. Never touch it,
+  // and never move a whole project folder that holds it.
+  if (segs[0] === '.claude' && segs[1] === 'projects' && segs.length >= 3) {
+    if (segs[3] === 'memory') return 'It is Claude\'s saved memory.';
+    if (existsSync(path.join(h, '.claude', 'projects', segs[2], 'memory'))) return 'This project folder holds Claude\'s saved memory.';
   }
 
   // Never touch git history, or inside photo/music libraries.

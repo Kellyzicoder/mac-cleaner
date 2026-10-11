@@ -144,3 +144,29 @@ test('protected paths can never be cleaned', () => {
   ];
   for (const p of allowed) assert.equal(protectedReason(p, home), null, `${p} should be allowed`);
 });
+
+test('Claude saved memory is never offered, and a project folder that holds it is skipped', async () => {
+  const home = fs.mkdtempSync(path.join(process.env.TEST_TMP ?? os.tmpdir(), 'cleaner-mem-'));
+  try {
+    const old = new Date(Date.now() - 100 * 86_400_000);
+    const mk = (rel: string, mb: number) => {
+      const f = path.join(home, rel);
+      fs.mkdirSync(path.dirname(f), { recursive: true });
+      fs.writeFileSync(f, Buffer.alloc(mb * 1024 * 1024, 'a'));
+      fs.utimesSync(f, old, old);
+      fs.utimesSync(path.dirname(f), old, old);
+    };
+    mk('.claude/projects/-with-memory/chat.jsonl', 8);
+    mk('.claude/projects/-with-memory/memory/notes.md', 1);
+    mk('.claude/projects/-plain/chat.jsonl', 8);
+    const list = await scanAll({ home, keep: new Set(), now: Date.now(), apps: { dirs: [] }, snapshot: EMPTY_SNAPSHOT });
+    const hist = list.filter((f) => f.id.includes('claude-code-projects'));
+    assert.equal(hist.length, 1, 'only the plain project is offered');
+    assert.ok(hist[0].paths[0].endsWith('-plain'));
+    assert.notEqual(protectedReason(path.join(home, '.claude/projects/-with-memory'), home), null);
+    assert.notEqual(protectedReason(path.join(home, '.claude/projects/-with-memory/memory/notes.md'), home), null);
+    assert.equal(protectedReason(path.join(home, '.claude/projects/-plain'), home), null);
+  } finally {
+    fs.rmSync(home, { recursive: true, force: true });
+  }
+});
