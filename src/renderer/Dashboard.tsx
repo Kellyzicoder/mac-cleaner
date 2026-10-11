@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import type { DashInfo, NetSpeed } from '../shared/types';
+import type { BusyApp, DashInfo, NetSpeed, StartupItem } from '../shared/types';
 import { DiskView } from './DiskView';
 import { ago, gb2, speed } from './format';
 
@@ -13,6 +13,9 @@ export function Dashboard({ onScan, onClean }: { onScan: () => void; onClean: ()
   const [error, setError] = useState('');
   const [test, setTest] = useState<{ busy: boolean; text: string }>({ busy: false, text: '' });
   const [msg, setMsg] = useState('');
+  const [busy, setBusy] = useState<BusyApp[]>([]);
+  const [startup, setStartup] = useState<StartupItem[]>([]);
+  const [busyMsg, setBusyMsg] = useState('');
   const alive = useRef(true);
 
   async function refresh() {
@@ -28,6 +31,10 @@ export function Dashboard({ onScan, onClean }: { onScan: () => void; onClean: ()
     alive.current = true;
     void refresh();
     const a = setInterval(() => void refresh(), REFRESH_MS);
+    const loadBusy = () => void window.cleaner.busyApps().then((l) => alive.current && setBusy(l)).catch(() => undefined);
+    loadBusy();
+    void window.cleaner.startupItems().then((l) => alive.current && setStartup(l)).catch(() => undefined);
+    const c = setInterval(loadBusy, 5_000);
     const b = setInterval(() => {
       void window.cleaner.netSpeed().then((n) => alive.current && setNet(n)).catch(() => undefined);
     }, NET_MS);
@@ -35,6 +42,7 @@ export function Dashboard({ onScan, onClean }: { onScan: () => void; onClean: ()
       alive.current = false;
       clearInterval(a);
       clearInterval(b);
+      clearInterval(c);
     };
   }, []);
 
@@ -48,6 +56,12 @@ export function Dashboard({ onScan, onClean }: { onScan: () => void; onClean: ()
     const r = await window.cleaner.eject(id);
     setMsg(r.message);
     void refresh();
+  }
+
+  async function quit(id: string) {
+    const r = await window.cleaner.quitApp(id);
+    setBusyMsg(r.message);
+    setBusy(await window.cleaner.busyApps());
   }
 
   if (error && !info) return <div className="banner error">{error}</div>;
@@ -80,7 +94,16 @@ export function Dashboard({ onScan, onClean }: { onScan: () => void; onClean: ()
             <div key={r} className="reason">• {r}</div>
           ))}
         </div>
-        <div className="laptop" aria-hidden="true">💻</div>
+        <svg className="heroicon" viewBox="0 0 64 64" aria-hidden="true">
+          <defs>
+            <linearGradient id="hg" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stopColor="#b9a8ff" />
+              <stop offset="1" stopColor="#6c5cff" />
+            </linearGradient>
+          </defs>
+          <path d="M32 4 55 12v18c0 14-9.5 25-23 30C18.5 55 9 44 9 30V12z" fill="url(#hg)" />
+          <path d="M32 18l3.5 8.5L44 30l-8.5 3.5L32 42l-3.5-8.5L20 30l8.5-3.5z" fill="#fff" opacity="0.95" />
+        </svg>
       </section>
 
       <section className="glass">
@@ -154,6 +177,35 @@ export function Dashboard({ onScan, onClean }: { onScan: () => void; onClean: ()
             </div>
           ))}
           {msg && <div className="tiny muted">{msg}</div>}
+        </div>
+      </div>
+
+      <div className="grid2">
+        <div className="glass tile">
+          <div className="tilehead">🔥 <b>Busy apps</b></div>
+          {busy.length === 0 && <div className="muted">Nothing is using much CPU.</div>}
+          {busy.map((a) => (
+            <div key={a.id} className="devrow">
+              <span>{a.name}</span>
+              <span className="tiny muted">{a.cpuPercent}%</span>
+              {a.canQuit ? <button className="link" onClick={() => void quit(a.id)} title="Quit this app">Quit</button> : <span />}
+            </div>
+          ))}
+          {busyMsg && <div className="tiny muted">{busyMsg}</div>}
+        </div>
+
+        <div className="glass tile">
+          <div className="tilehead">🚀 <b>Startup programs</b><span className="tr">{startup.length}</span></div>
+          {startup.length === 0 && <div className="muted">Nothing opens by itself, or macOS has not allowed me to look.</div>}
+          {startup.slice(0, 6).map((s) => (
+            <div key={s.id} className="devrow">
+              <span>{s.name}</span>
+              <span className="tiny muted">{s.kind === 'login' ? 'Login item' : 'Background helper'}</span>
+              {s.kind === 'agent' ? <button className="link" onClick={() => void window.cleaner.startupReveal(s.id)}>Show</button> : <span />}
+            </div>
+          ))}
+          {startup.length > 6 && <div className="tiny muted">and {startup.length - 6} more</div>}
+          <div className="tilefoot"><button className="link" onClick={() => void window.cleaner.openLoginSettings()}>Manage</button></div>
         </div>
       </div>
 

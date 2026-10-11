@@ -160,7 +160,7 @@ button.tile:hover { border-color: rgba(255, 255, 255, 0.4); }
 .level.okay { color: var(--ask); }
 .level.care { color: var(--err); }
 .reason { font-size: 13px; color: var(--muted); margin-top: 4px; }
-.laptop { font-size: 54px; filter: drop-shadow(0 6px 14px rgba(150, 140, 255, 0.5)); }
+.heroicon { width: 64px; height: 64px; filter: drop-shadow(0 6px 14px rgba(150, 140, 255, 0.5)); }
 .cardrow { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
 .chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0 6px; }
 .chip { font-size: 13px; padding: 4px 10px; border-radius: 999px; background: rgba(255,255,255,0.1); }

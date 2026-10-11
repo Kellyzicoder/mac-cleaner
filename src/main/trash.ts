@@ -47,7 +47,25 @@ export function friendlyTrashError(message: string): string {
       'Wait a bit, then press Look inside to see if the number went down.'
     );
   }
+  if (message.includes('-10000') || /handler failed/i.test(message)) {
+    return (
+      'Finder started but could not finish. This usually means one item in the Trash is locked or in use, ' +
+      'or Finder is still busy with an earlier try. Wait a minute and try again. If it still fails, ' +
+      'open the Trash in Finder, hold Option and choose File > Delete Immediately, or right-click the stubborn item.'
+    );
+  }
   return `I could not empty the Trash: ${message}`;
+}
+
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+async function askFinder(): Promise<void> {
+  // AppleScript gives up after 2 minutes by default (error -1712). A big Trash needs longer, so wait up to an hour.
+  await run(
+    'osascript',
+    ['-e', 'with timeout of 3600 seconds', '-e', 'tell application "Finder" to empty the trash', '-e', 'end timeout'],
+    { timeout: 65 * 60 * 1000 },
+  );
 }
 
 /**
@@ -57,14 +75,22 @@ export function friendlyTrashError(message: string): string {
  */
 export async function emptyTrash(): Promise<{ ok: boolean; message: string }> {
   try {
-    // AppleScript gives up after 2 minutes by default (error -1712). A big Trash needs longer, so wait up to an hour.
-    await run(
-      'osascript',
-      ['-e', 'with timeout of 3600 seconds', '-e', 'tell application "Finder" to empty the trash', '-e', 'end timeout'],
-      { timeout: 65 * 60 * 1000 },
-    );
+    await askFinder();
     return { ok: true, message: 'The Trash is empty.' };
   } catch (err) {
-    return { ok: false, message: friendlyTrashError((err as Error).message) };
+    const msg = (err as Error).message;
+    if (msg.includes('-10000')) {
+      // Finder often says this while still busy. Give it a moment, look, then try once more.
+      await sleep(4000);
+      if ((await finderCount()) === 0) return { ok: true, message: 'The Trash is empty.' };
+      try {
+        await askFinder();
+        return { ok: true, message: 'The Trash is empty.' };
+      } catch (err2) {
+        if ((await finderCount()) === 0) return { ok: true, message: 'The Trash is empty.' };
+        return { ok: false, message: friendlyTrashError((err2 as Error).message) };
+      }
+    }
+    return { ok: false, message: friendlyTrashError(msg) };
   }
 }
