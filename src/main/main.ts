@@ -10,6 +10,7 @@ import { humanSize, measure } from './fsutil';
 import { checkInUse, getSnapshot } from './apps';
 import { makePreview, previewTrash } from './preview';
 import { emptyTrash, trashInfo } from './trash';
+import { quitApp, startupItems, topCpuApps } from './busy';
 import { collectDash, ejectDevice, netSpeed, speedTest } from './sysinfo';
 import { allowedDiskPath, analyzeDisk, listChildren } from './diskmap';
 import { applyTidy, MoveLog, planTidy, rootProblem, undoTidy } from './organize';
@@ -219,6 +220,44 @@ ipcMain.handle('disk-children', async (_e, id: string) => {
 ipcMain.handle('disk-reveal', (_e, id: string) => {
   const p = diskIds.get(id);
   if (p && allowedDiskPath(p, home)) shell.showItemInFolder(p);
+});
+
+let busyPids = new Map<string, number>();
+let startupPaths = new Map<string, string>();
+ipcMain.handle('busy-apps', async () => {
+  try {
+    const r = await topCpuApps(5);
+    busyPids = r.pids;
+    return r.list;
+  } catch {
+    return [];
+  }
+});
+ipcMain.handle('quit-app', async (_e, id: string) => {
+  const pid = busyPids.get(id);
+  if (!pid) return { ok: false, message: 'That app is not in the list any more. Refresh and try again.' };
+  const options = {
+    type: 'warning' as const,
+    buttons: ['Cancel', 'Quit app'],
+    defaultId: 0,
+    cancelId: 0,
+    title: 'Quit this app?',
+    message: 'Quit this app?',
+    detail: 'Anything you have not saved in it may be lost.',
+  };
+  const box = win ? await dialog.showMessageBox(win, options) : await dialog.showMessageBox(options);
+  if (box.response !== 1) return { ok: false, message: 'Cancelled. Nothing was quit.' };
+  return quitApp(pid);
+});
+ipcMain.handle('startup-items', async () => {
+  const r = await startupItems(home);
+  startupPaths = r.paths;
+  return r.list;
+});
+ipcMain.handle('open-login-settings', () => shell.openExternal('x-apple.systempreferences:com.apple.LoginItems-Settings.extension'));
+ipcMain.handle('startup-reveal', (_e, id: string) => {
+  const p = startupPaths.get(id);
+  if (p) shell.showItemInFolder(p);
 });
 
 let pickedFolder: string | null = null;

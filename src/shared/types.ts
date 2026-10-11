@@ -155,6 +155,9 @@ export interface CleanResult {
   failed: { id: string; reason: string }[];
 }
 
+export interface BusyApp { id: string; name: string; cpuPercent: number; canQuit: boolean }
+export interface StartupItem { id: string; name: string; kind: 'login' | 'agent' }
+
 export interface CleanerApi {
   scan(): Promise<Finding[]>;
   onProgress(cb: (p: ScanProgress) => void): () => void;
@@ -182,4 +185,13 @@ export interface CleanerApi {
   diskAnalyze(): Promise<DiskAnalysis>;
   diskChildren(id: string): Promise<DiskEntry[]>;
   diskReveal(id: string): Promise<void>;
+  /** The apps using the most CPU right now. */
+  busyApps(): Promise<BusyApp[]>;
+  /** Asks to confirm in a native window, then quits that app politely. */
+  quitApp(id: string): Promise<{ ok: boolean; message: string }>;
+  /** Apps that open by themselves when you log in. */
+  startupItems(): Promise<StartupItem[]>;
+  /** Opens System Settings > Login Items, where they can be switched off. */
+  openLoginSettings(): Promise<void>;
+  startupReveal(id: string): Promise<void>;
 }

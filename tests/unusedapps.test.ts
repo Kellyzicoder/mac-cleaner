@@ -155,4 +155,5 @@ test('a Finder timeout gets a plain message', async () => {
   const { friendlyTrashError } = await import('../src/main/trash');
   assert.match(friendlyTrashError('29:44: execution error: Finder got an error: AppleEvent timed out. (-1712)'), /taking a long time/);
   assert.match(friendlyTrashError('x (-1743)'), /Automation/);
+  assert.match(friendlyTrashError('Finder got an error: AppleEvent handler failed. (-10000)'), /locked or in use/);
 });

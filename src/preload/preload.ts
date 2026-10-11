@@ -27,6 +27,11 @@ const api: CleanerApi = {
   diskAnalyze: () => ipcRenderer.invoke('disk-analyze'),
   diskChildren: (id) => ipcRenderer.invoke('disk-children', id),
   diskReveal: (id) => ipcRenderer.invoke('disk-reveal', id),
+  busyApps: () => ipcRenderer.invoke('busy-apps'),
+  quitApp: (id) => ipcRenderer.invoke('quit-app', id),
+  startupItems: () => ipcRenderer.invoke('startup-items'),
+  openLoginSettings: () => ipcRenderer.invoke('open-login-settings'),
+  startupReveal: (id) => ipcRenderer.invoke('startup-reveal', id),
 };
 
 contextBridge.exposeInMainWorld('cleaner', api);
