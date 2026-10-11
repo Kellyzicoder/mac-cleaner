@@ -1,6 +1,6 @@
 export function Logo({ size = 40 }: { size?: number }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 128 128" role="img" aria-label="Mac Cleaner logo">
+    <svg width={size} height={size} viewBox="0 0 128 128" role="img" aria-label="Mac Purificator logo">
       <defs>
         <linearGradient id="logo-bg" x1="0" y1="0" x2="1" y2="1">
           <stop offset="0" stopColor="#2ee6b0" />

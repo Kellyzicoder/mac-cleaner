@@ -1,4 +1,4 @@
-# Mac Cleaner
+# Mac Purificator
 
 A Mac desktop app (Electron + React + TypeScript) that finds junk, explains **why it can go** and **why it might be better to stay**, and asks you when it is not sure.
 
@@ -9,6 +9,16 @@ These pictures use made-up sample files, not a real Mac.
 ![Safe to remove tab with the reasons open](docs/screenshots/safe.png)
 ![Not sure tab: your call](docs/screenshots/ask.png)
 ![Tidy my files: now and after](docs/screenshots/tidy.png)
+
+## Install it as a Mac app
+
+```bash
+npm install
+npm run package      # builds "Mac Purificator.app" into the release folder
+npm run install-app  # copies it to your Applications folder
+```
+
+Then open it from Launchpad or Spotlight. Build it on the Mac you will use it on. The first time, macOS may ask if the app can control Finder (needed to empty the Trash).
 
 ## Try it in your browser
 

@@ -1,7 +1,7 @@
 {
-  "name": "mac-cleaner",
+  "name": "mac-purificator",
   "version": "0.1.0",
-  "description": "A Mac cleaner that explains why each item can go, and asks when it is not sure.",
+  "description": "A Mac cleaner (Mac Purificator) that explains why each item can go, and asks when it is not sure.",
   "main": "dist/main/src/main/main.js",
   "scripts": {
     "build:main": "tsc -p tsconfig.main.json",
@@ -10,9 +10,12 @@
     "start": "npm run build && electron .",
     "dev": "npm run build:main && concurrently -k \"vite\" \"wait-on tcp:5173 && cross-env ELECTRON_DEV=1 electron .\"",
     "typecheck": "tsc -p tsconfig.main.json --noEmit && tsc -p tsconfig.renderer.json --noEmit",
-    "test": "npm run build:main && node --test dist/main/tests/scanner.test.js dist/main/tests/apps.test.js dist/main/tests/hidden.test.js dist/main/tests/unusedapps.test.js dist/main/tests/organize.test.js"
+    "test": "npm run build:main && node --test dist/main/tests/scanner.test.js dist/main/tests/apps.test.js dist/main/tests/hidden.test.js dist/main/tests/unusedapps.test.js dist/main/tests/organize.test.js",
+    "package": "npm run build && bash scripts/make-icns.sh && electron-packager . \"Mac Purificator\" --platform=darwin --arch=$(node -p \"process.arch\") --out=release --overwrite --icon=assets/icon.icns --app-bundle-id=com.kellyzicoder.macpurificator --ignore=\"^/(src|tests|demo|docs|release|scripts|node_modules/\\\\.cache)($|/)\" --ignore=\"^/(tsconfig.*|vite.config.ts|README.md)$\"",
+    "install-app": "bash scripts/install-app.sh"
   },
   "devDependencies": {
+    "@electron/packager": "^18.3.0",
     "@types/node": "^22.0.0",
     "@types/react": "^18.3.0",
     "@types/react-dom": "^18.3.0",

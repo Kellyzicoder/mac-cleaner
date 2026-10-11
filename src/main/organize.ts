@@ -6,7 +6,9 @@ import { humanSize } from './fsutil';
 const MIN_FILES = 3;
 const FRESH_MS = 10 * 60 * 1000;
 const ABOUT = '_About this folder.txt';
-const ABOUT_MARK = 'Made by Mac Cleaner';
+const ABOUT_MARK = 'Made by Mac Purificator';
+/** Notes made before the rename start with the old name. */
+const ABOUT_MARK_OLD = 'Made by Mac Cleaner';
 
 interface Kind {
   key: string;
@@ -395,7 +397,7 @@ export async function undoTidy(log: MoveLog[]): Promise<{ restored: number; fail
       if (left.length > 0) continue;
       const note = path.join(dir, ABOUT);
       const text = await fs.readFile(note, 'utf8').catch(() => '');
-      if (text.startsWith(ABOUT_MARK)) await fs.unlink(note); // only our own note
+      if (text.startsWith(ABOUT_MARK) || text.startsWith(ABOUT_MARK_OLD)) await fs.unlink(note); // only our own note
       await fs.rmdir(dir);
     } catch {
       /* leave it */
