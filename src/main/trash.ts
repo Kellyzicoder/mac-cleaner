@@ -37,8 +37,8 @@ export async function trashInfo(home: string): Promise<TrashInfo> {
 export function friendlyTrashError(message: string): string {
   if (message.includes('-1743') || /not authori[sz]ed/i.test(message)) {
     return (
-      'macOS did not let Mac Cleaner control Finder. Open System Settings > Privacy & Security > Automation, ' +
-      'allow Mac Cleaner to control Finder, then try again. Or empty the Trash in Finder yourself.'
+      'macOS did not let Mac Purificator control Finder. Open System Settings > Privacy & Security > Automation, ' +
+      'allow Mac Purificator to control Finder, then try again. Or empty the Trash in Finder yourself.'
     );
   }
   return `I could not empty the Trash: ${message}`;

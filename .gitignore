@@ -1,3 +1,6 @@
 node_modules
 dist
 .DS_Store
+release
+assets/icon.icns
+assets/icon.iconset

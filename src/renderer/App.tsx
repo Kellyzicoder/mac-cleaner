@@ -253,7 +253,7 @@ export function App() {
         <div className="brand">
           <Logo size={44} />
           <div>
-            <h1>Mac Cleaner</h1>
+            <h1>Mac Purificator</h1>
             <p className="sub">Finds junk, tells you why it can go, and asks when it is not sure.</p>
           </div>
         </div>

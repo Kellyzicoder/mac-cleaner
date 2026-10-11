@@ -32,7 +32,7 @@ function createWindow(): void {
     height: 760,
     minWidth: 760,
     minHeight: 520,
-    title: 'Mac Cleaner',
+    title: 'Mac Purificator',
     icon: iconPath(),
     titleBarStyle: 'hiddenInset',
     webPreferences: {
