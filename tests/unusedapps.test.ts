@@ -150,3 +150,9 @@ test('trashInfo counts what is in the Trash and handles a missing Trash', async 
     fs.rmSync(home, { recursive: true, force: true });
   }
 });
+
+test('a Finder timeout gets a plain message', async () => {
+  const { friendlyTrashError } = await import('../src/main/trash');
+  assert.match(friendlyTrashError('29:44: execution error: Finder got an error: AppleEvent timed out. (-1712)'), /taking a long time/);
+  assert.match(friendlyTrashError('x (-1743)'), /Automation/);
+});

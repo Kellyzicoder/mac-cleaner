@@ -41,6 +41,12 @@ export function friendlyTrashError(message: string): string {
       'allow Mac Purificator to control Finder, then try again. Or empty the Trash in Finder yourself.'
     );
   }
+  if (message.includes('-1712') || /timed out/i.test(message)) {
+    return (
+      'Finder is taking a long time. A big Trash can take many minutes. Finder may still be emptying it. ' +
+      'Wait a bit, then press Look inside to see if the number went down.'
+    );
+  }
   return `I could not empty the Trash: ${message}`;
 }
 
@@ -51,7 +57,12 @@ export function friendlyTrashError(message: string): string {
  */
 export async function emptyTrash(): Promise<{ ok: boolean; message: string }> {
   try {
-    await run('osascript', ['-e', 'tell application "Finder" to empty the trash'], { timeout: 10 * 60 * 1000 });
+    // AppleScript gives up after 2 minutes by default (error -1712). A big Trash needs longer, so wait up to an hour.
+    await run(
+      'osascript',
+      ['-e', 'with timeout of 3600 seconds', '-e', 'tell application "Finder" to empty the trash', '-e', 'end timeout'],
+      { timeout: 65 * 60 * 1000 },
+    );
     return { ok: true, message: 'The Trash is empty.' };
   } catch (err) {
     return { ok: false, message: friendlyTrashError((err as Error).message) };
