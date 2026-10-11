@@ -6,6 +6,8 @@ A Mac desktop app (Electron + React + TypeScript) that finds junk, explains **wh
 
 These pictures use made-up sample files, not a real Mac.
 
+![Overview: Mac health, disk, memory, battery, Wi-Fi and drives](docs/screenshots/overview.png)
+![Disk: what uses your space, including everything in Other](docs/screenshots/disk.png)
 ![Safe to remove tab with the reasons open](docs/screenshots/safe.png)
 ![Not sure tab: your call](docs/screenshots/ask.png)
 ![Tidy my files: now and after](docs/screenshots/tidy.png)
@@ -32,6 +34,16 @@ npm start        # builds and opens the app
 npm run dev      # development mode with live reload
 npm test         # scanner tests on a fake home folder
 ```
+
+## Overview and disk map
+
+The first screen shows your Mac at a glance, in a purple look:
+
+- **Mac Health** (Good / Okay / Needs care) with the reasons.
+- **Mac security settings**: FileVault, System Integrity Protection, Gatekeeper and the Firewall. It reads the macOS settings. It is not a virus scanner.
+- **Disk, memory, battery** (with health and charge cycles), **CPU load**, **Wi-Fi speed** (live, plus a **Test Speed** button that downloads a 25 MB test file from Cloudflare), and **plugged-in drives** with an eject button.
+- **Disk map:** press the disk card to see a ring chart of Documents, Applications, Desktop, Downloads and Other. Press **Measure** and everything in Other is listed by size, hidden folders included. Click a folder to look inside it, or press Show to open it in Finder.
+- **Not shown:** chip temperature (macOS only gives it to admin tools) and real-time malware protection.
 
 ## How it works
 

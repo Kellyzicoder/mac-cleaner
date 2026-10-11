@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Tidy } from './Tidy';
+import { Dashboard } from './Dashboard';
 import type { CleanResult, Finding, Preview, TrashInfo } from '../shared/types';
 import { inUseText } from '../shared/text';
 import { Logo } from './Logo';
@@ -85,7 +86,7 @@ function PreviewBox({ load }: { load: () => Promise<Preview> }) {
 }
 
 export function App() {
-  const [mode, setMode] = useState<'clean' | 'tidy'>('clean');
+  const [mode, setMode] = useState<'dash' | 'clean' | 'tidy'>('dash');
   const [phase, setPhase] = useState<Phase>('idle');
   const [tab, setTab] = useState<Tab>('safe');
   const [step, setStep] = useState('');
@@ -270,6 +271,9 @@ export function App() {
       </header>
 
       <nav className="modes" role="tablist">
+        <button role="tab" aria-selected={mode === 'dash'} className={`mode ${mode === 'dash' ? 'on' : ''}`} onClick={() => setMode('dash')}>
+          Overview
+        </button>
         <button role="tab" aria-selected={mode === 'clean'} className={`mode ${mode === 'clean' ? 'on' : ''}`} onClick={() => setMode('clean')}>
           Clean up junk
         </button>
@@ -277,6 +281,16 @@ export function App() {
           Tidy my files
         </button>
       </nav>
+
+      {mode === 'dash' && (
+        <Dashboard
+          onClean={() => setMode('clean')}
+          onScan={() => {
+            setMode('clean');
+            void scan();
+          }}
+        />
+      )}
 
       {mode === 'tidy' && <Tidy />}
 

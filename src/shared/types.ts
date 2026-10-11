@@ -75,6 +75,76 @@ export interface TidyResult {
   failed: { file: string; reason: string }[];
 }
 
+export interface Battery {
+  present: boolean;
+  percent: number | null;
+  charging: boolean;
+  pluggedIn: boolean;
+  /** "0:46" style text, or null when macOS has no estimate. */
+  remaining: string | null;
+  /** Maximum capacity compared with new, in percent. */
+  healthPercent: number | null;
+  cycles: number | null;
+  condition: string | null;
+}
+
+export interface SecurityCheck {
+  label: string;
+  on: boolean | null;
+  note: string;
+}
+
+export interface DeviceInfo {
+  id: string;
+  name: string;
+  bytesFree: number | null;
+  bytesTotal: number | null;
+}
+
+export interface DashInfo {
+  model: string;
+  disk: { totalBytes: number; availableBytes: number };
+  /** Percent of memory under pressure (100 minus the free percent macOS reports). */
+  memoryPressure: number | null;
+  memoryTotalBytes: number;
+  cpuLoadPercent: number;
+  battery: Battery;
+  /** "Verified", "Failing", "Not supported" ... as macOS says it. */
+  driveStatus: string | null;
+  devices: DeviceInfo[];
+  security: SecurityCheck[];
+  /** Time of the last junk scan in ms since 1970, or null if never. */
+  lastScanAt: number | null;
+  health: { level: 'good' | 'okay' | 'care'; reasons: string[] };
+}
+
+export interface NetSpeed {
+  downBytesPerSec: number;
+  upBytesPerSec: number;
+}
+
+export interface DiskEntry {
+  id: string;
+  name: string;
+  bytes: number;
+  isDir: boolean;
+}
+
+export interface DiskCategory {
+  key: 'documents' | 'applications' | 'desktop' | 'downloads' | 'other';
+  label: string;
+  bytes: number;
+}
+
+export interface DiskAnalysis {
+  totalBytes: number;
+  availableBytes: number;
+  usedBytes: number;
+  categories: DiskCategory[];
+  /** Everything inside "Other", biggest first. Click one to look inside it. */
+  other: DiskEntry[];
+}
+
 export interface ScanProgress {
   step: string;
 }
@@ -104,4 +174,12 @@ export interface CleanerApi {
   /** How many files the last tidy moved (0 = nothing to undo). */
   tidyUndoCount(): Promise<number>;
   tidyUndo(): Promise<{ ok: boolean; message: string }>;
+  dashInfo(): Promise<DashInfo>;
+  netSpeed(): Promise<NetSpeed>;
+  /** Downloads a test file from Cloudflare and returns the speed in bytes per second. */
+  speedTest(): Promise<{ ok: boolean; bytesPerSec: number; message: string }>;
+  eject(deviceId: string): Promise<{ ok: boolean; message: string }>;
+  diskAnalyze(): Promise<DiskAnalysis>;
+  diskChildren(id: string): Promise<DiskEntry[]>;
+  diskReveal(id: string): Promise<void>;
 }

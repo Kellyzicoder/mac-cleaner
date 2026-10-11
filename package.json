@@ -10,7 +10,7 @@
     "start": "npm run build && electron .",
     "dev": "npm run build:main && concurrently -k \"vite\" \"wait-on tcp:5173 && cross-env ELECTRON_DEV=1 electron .\"",
     "typecheck": "tsc -p tsconfig.main.json --noEmit && tsc -p tsconfig.renderer.json --noEmit",
-    "test": "npm run build:main && node --test dist/main/tests/scanner.test.js dist/main/tests/apps.test.js dist/main/tests/hidden.test.js dist/main/tests/unusedapps.test.js dist/main/tests/organize.test.js",
+    "test": "npm run build:main && node --test dist/main/tests/scanner.test.js dist/main/tests/apps.test.js dist/main/tests/hidden.test.js dist/main/tests/unusedapps.test.js dist/main/tests/organize.test.js dist/main/tests/sysinfo.test.js",
     "package": "npm run build && bash scripts/make-icns.sh && electron-packager . \"Mac Purificator\" --platform=darwin --arch=$(node -p \"process.arch\") --out=release --overwrite --icon=assets/icon.icns --app-bundle-id=com.kellyzicoder.macpurificator --ignore=\"^/(src|tests|demo|docs|release|scripts|node_modules/\\\\.cache)($|/)\" --ignore=\"^/(tsconfig.*|vite.config.ts|README.md)$\"",
     "install-app": "bash scripts/install-app.sh"
   },

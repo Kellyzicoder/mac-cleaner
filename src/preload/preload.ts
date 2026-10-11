@@ -20,6 +20,13 @@ const api: CleanerApi = {
   tidyApply: (ids) => ipcRenderer.invoke('tidy-apply', ids),
   tidyUndoCount: () => ipcRenderer.invoke('tidy-undo-count'),
   tidyUndo: () => ipcRenderer.invoke('tidy-undo'),
+  dashInfo: () => ipcRenderer.invoke('dash-info'),
+  netSpeed: () => ipcRenderer.invoke('net-speed'),
+  speedTest: () => ipcRenderer.invoke('speed-test'),
+  eject: (id) => ipcRenderer.invoke('eject', id),
+  diskAnalyze: () => ipcRenderer.invoke('disk-analyze'),
+  diskChildren: (id) => ipcRenderer.invoke('disk-children', id),
+  diskReveal: (id) => ipcRenderer.invoke('disk-reveal', id),
 };
 
 contextBridge.exposeInMainWorld('cleaner', api);
