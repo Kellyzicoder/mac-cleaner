@@ -27,6 +27,14 @@ const api: CleanerApi = {
   diskAnalyze: () => ipcRenderer.invoke('disk-analyze'),
   diskChildren: (id) => ipcRenderer.invoke('disk-children', id),
   diskReveal: (id) => ipcRenderer.invoke('disk-reveal', id),
+  appUpdateCheck: () => ipcRenderer.invoke('app-update-check'),
+  appUpdatePick: () => ipcRenderer.invoke('app-update-pick'),
+  appUpdateRun: () => ipcRenderer.invoke('app-update-run'),
+  onUpdateProgress: (cb) => {
+    const h = (_e: unknown, line: string) => cb(line);
+    ipcRenderer.on('update-progress', h);
+    return () => ipcRenderer.removeListener('update-progress', h);
+  },
   libApps: () => ipcRenderer.invoke('lib-apps'),
   libExtensions: () => ipcRenderer.invoke('lib-extensions'),
   libTrash: (ids) => ipcRenderer.invoke('lib-trash', ids),

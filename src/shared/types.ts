@@ -186,6 +186,15 @@ export interface UpdatesInfo {
 }
 export interface LibTrashResult { movedIds: string[]; freedBytes: number; failed: { id: string; reason: string }[] }
 
+export interface AppUpdateInfo {
+  state: 'no-folder' | 'current' | 'available' | 'error';
+  folder: string | null;
+  behind: number;
+  /** Short plain lines about what is new. */
+  notes: string[];
+  message: string;
+}
+
 export interface BusyApp { id: string; name: string; cpuPercent: number; canQuit: boolean }
 export interface StartupItem { id: string; name: string; kind: 'login' | 'agent' }
 
@@ -216,6 +225,13 @@ export interface CleanerApi {
   diskAnalyze(): Promise<DiskAnalysis>;
   diskChildren(id: string): Promise<DiskEntry[]>;
   diskReveal(id: string): Promise<void>;
+  /** Looks for a newer Mac Purificator on GitHub. Changes nothing. */
+  appUpdateCheck(): Promise<AppUpdateInfo>;
+  /** Lets the person choose the mac-cleaner folder when I cannot find it. */
+  appUpdatePick(): Promise<AppUpdateInfo>;
+  /** Asks first, then updates, rebuilds, installs and reopens the app. */
+  appUpdateRun(): Promise<{ ok: boolean; message: string }>;
+  onUpdateProgress(cb: (line: string) => void): () => void;
   libApps(): Promise<AppRow[]>;
   libExtensions(): Promise<ExtRow[]>;
   /** Moves the chosen apps or extensions to the Trash (never deletes for good). */
