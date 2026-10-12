@@ -2,7 +2,7 @@ import { app, BrowserWindow, dialog, ipcMain, shell } from 'electron';
 import * as path from 'path';
 import * as os from 'os';
 import { existsSync, promises as fs } from 'fs';
-import { CleanResult, Finding, LibTrashResult, Preview } from '../shared/types';
+import { AppUpdateInfo, CleanResult, Finding, LibTrashResult, Preview } from '../shared/types';
 import { inUseText } from '../shared/text';
 import { readKeepList, scanAll, writeKeepList } from './scanner';
 import { protectedReason } from './safety';
@@ -10,6 +10,8 @@ import { humanSize, measure } from './fsutil';
 import { checkInUse, getSnapshot } from './apps';
 import { makePreview, previewTrash } from './preview';
 import { emptyTrash, trashInfo } from './trash';
+import { checkBehind, findSourceFolder, isSourceFolder, runUpdate } from './selfupdate';
+import { spawn } from 'child_process';
 import { checkUpdates, listApps, listExtensions } from './library';
 import { quitApp, startupItems, topCpuApps } from './busy';
 import { collectDash, ejectDevice, netSpeed, speedTest } from './sysinfo';
@@ -221,6 +223,65 @@ ipcMain.handle('disk-children', async (_e, id: string) => {
 ipcMain.handle('disk-reveal', (_e, id: string) => {
   const p = diskIds.get(id);
   if (p && allowedDiskPath(p, home)) shell.showItemInFolder(p);
+});
+
+function sourceFile(): string {
+  return path.join(app.getPath('userData'), 'source-folder.txt');
+}
+async function savedSource(): Promise<string | null> {
+  try {
+    return (await fs.readFile(sourceFile(), 'utf8')).trim() || null;
+  } catch {
+    return null;
+  }
+}
+async function appUpdateInfo(): Promise<AppUpdateInfo> {
+  const folder = await findSourceFolder(home, await savedSource());
+  if (!folder) {
+    return { state: 'no-folder', folder: null, behind: 0, notes: [], message: 'I need to know where your mac-cleaner folder is.' };
+  }
+  try {
+    const r = await checkBehind(folder);
+    return r.behind > 0
+      ? { state: 'available', folder, behind: r.behind, notes: r.notes, message: `${r.behind} new change${r.behind === 1 ? '' : 's'} waiting.` }
+      : { state: 'current', folder, behind: 0, notes: [], message: 'You have the newest version.' };
+  } catch (e) {
+    return { state: 'error', folder, behind: 0, notes: [], message: `Could not check: ${(e as Error).message.split('\n')[0]}` };
+  }
+}
+ipcMain.handle('app-update-check', () => appUpdateInfo());
+ipcMain.handle('app-update-pick', async () => {
+  const options = { title: 'Choose your mac-cleaner folder', properties: ['openDirectory' as const] };
+  const r = win ? await dialog.showOpenDialog(win, options) : await dialog.showOpenDialog(options);
+  const dir = r.filePaths[0];
+  if (r.canceled || !dir) return appUpdateInfo();
+  if (!(await isSourceFolder(dir))) {
+    return { state: 'no-folder', folder: null, behind: 0, notes: [], message: 'That is not the Mac Purificator folder (it needs package.json and a .git folder).' } as AppUpdateInfo;
+  }
+  await fs.writeFile(sourceFile(), dir, 'utf8');
+  return appUpdateInfo();
+});
+ipcMain.handle('app-update-run', async () => {
+  const folder = await findSourceFolder(home, await savedSource());
+  if (!folder) return { ok: false, message: 'I do not know where your mac-cleaner folder is. Choose it first.' };
+  const options = {
+    type: 'question' as const,
+    buttons: ['Cancel', 'Update and reopen'],
+    defaultId: 1,
+    cancelId: 0,
+    title: 'Update Mac Purificator?',
+    message: 'Update Mac Purificator?',
+    detail: 'I will download the new version, build it, replace the app in Applications, and reopen it. This takes a few minutes and needs the internet. Your files are not touched.',
+  };
+  const box = win ? await dialog.showMessageBox(win, options) : await dialog.showMessageBox(options);
+  if (box.response !== 1) return { ok: false, message: 'Cancelled.' };
+  const r = await runUpdate(folder, (line) => win?.webContents.send('update-progress', line));
+  if (!r.ok) return r;
+  // Reopen the new copy after this one has closed.
+  const child = spawn('/bin/sh', ['-c', 'sleep 2; open "/Applications/Mac Purificator.app"'], { detached: true, stdio: 'ignore' });
+  child.unref();
+  setTimeout(() => app.quit(), 500);
+  return { ok: true, message: 'Updated. Reopening…' };
 });
 
 let libPaths = new Map<string, string>();

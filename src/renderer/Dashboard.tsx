@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import type { BusyApp, DashInfo, NetSpeed, StartupItem } from '../shared/types';
+import type { AppUpdateInfo, BusyApp, DashInfo, NetSpeed, StartupItem } from '../shared/types';
 import { DiskView } from './DiskView';
 import { ago, gb2, speed } from './format';
 
@@ -16,6 +16,9 @@ export function Dashboard({ onScan, onClean }: { onScan: () => void; onClean: ()
   const [busy, setBusy] = useState<BusyApp[]>([]);
   const [startup, setStartup] = useState<StartupItem[]>([]);
   const [busyMsg, setBusyMsg] = useState('');
+  const [au, setAu] = useState<AppUpdateInfo | null>(null);
+  const [auBusy, setAuBusy] = useState(false);
+  const [auLine, setAuLine] = useState('');
   const alive = useRef(true);
 
   async function refresh() {
@@ -31,6 +34,8 @@ export function Dashboard({ onScan, onClean }: { onScan: () => void; onClean: ()
     alive.current = true;
     void refresh();
     const a = setInterval(() => void refresh(), REFRESH_MS);
+    void window.cleaner.appUpdateCheck().then((r) => alive.current && setAu(r)).catch(() => undefined);
+    const off = window.cleaner.onUpdateProgress((l) => alive.current && setAuLine(l));
     const loadBusy = () => void window.cleaner.busyApps().then((l) => alive.current && setBusy(l)).catch(() => undefined);
     loadBusy();
     void window.cleaner.startupItems().then((l) => alive.current && setStartup(l)).catch(() => undefined);
@@ -43,6 +48,7 @@ export function Dashboard({ onScan, onClean }: { onScan: () => void; onClean: ()
       clearInterval(a);
       clearInterval(b);
       clearInterval(c);
+      off();
     };
   }, []);
 
@@ -56,6 +62,22 @@ export function Dashboard({ onScan, onClean }: { onScan: () => void; onClean: ()
     const r = await window.cleaner.eject(id);
     setMsg(r.message);
     void refresh();
+  }
+
+  async function checkSelf() {
+    setAuBusy(true);
+    setAu(await window.cleaner.appUpdateCheck());
+    setAuBusy(false);
+  }
+  async function pickFolder() {
+    setAu(await window.cleaner.appUpdatePick());
+  }
+  async function updateSelf() {
+    setAuBusy(true);
+    setAuLine('Starting…');
+    const r = await window.cleaner.appUpdateRun();
+    setAuBusy(false);
+    setAu((cur) => (cur ? { ...cur, message: r.message } : cur));
   }
 
   async function quit(id: string) {
@@ -208,6 +230,20 @@ export function Dashboard({ onScan, onClean }: { onScan: () => void; onClean: ()
           <div className="tilefoot"><button className="link" onClick={() => void window.cleaner.openLoginSettings()}>Manage</button></div>
         </div>
       </div>
+
+      <section className="glass">
+        <div className="cardrow">
+          <b>Mac Purificator updates</b>
+          <span>
+            {au?.state === 'no-folder' && <button onClick={() => void pickFolder()}>Choose my mac-cleaner folder</button>}
+            {au?.state === 'available' && <button className="primary" disabled={auBusy} onClick={() => void updateSelf()}>{auBusy ? 'Updating…' : 'Update and reopen'}</button>}
+            {(au?.state === 'current' || au?.state === 'error') && <button disabled={auBusy} onClick={() => void checkSelf()}>Check again</button>}
+          </span>
+        </div>
+        <div className="muted">{au ? au.message : 'Checking…'}</div>
+        {au?.notes.map((n) => <div key={n} className="tiny muted">• {n}</div>)}
+        {auBusy && auLine && <div className="tiny muted">{auLine}</div>}
+      </section>
 
       <h3 className="recohead">Today's Recommendation</h3>
       <section className="glass reco">
