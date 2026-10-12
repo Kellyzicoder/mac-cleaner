@@ -55,6 +55,12 @@ The first screen shows your Mac at a glance, in a purple look:
 - **Empty Trash** (top of the window) deletes what is in the Trash **for good**. It shows how much is in there, lets you look inside, and asks you to confirm in a macOS window first. It also empties the Trash on plugged-in drives. The first time, macOS asks if the app may control Finder. Say OK.
 - **Always keep this** hides an item from every future scan.
 
+## Apps and extensions
+
+The **Apps & extensions** tab lists the apps you installed yourself with the date you last opened each one. Pick a range of years (or "older than 1 year"), untick anything you want to keep, and move the rest to the Trash. It can also look for updates (it never installs them) and lists VS Code and Cursor extensions by the year you installed them. VS Code does not record when an extension was last used.
+
+![Apps and extensions](docs/screenshots/apps.png)
+
 ## Tidy my files
 
 The second button at the top. It looks at loose files in Downloads, Desktop and Documents (and a folder you pick) and suggests folders with names that say what is inside, like `PDF Documents`, `Photos and Pictures`, `Screenshots and Screen Recordings - 2026-10` or `HNU - project files`.

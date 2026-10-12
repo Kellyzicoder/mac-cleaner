@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Tidy } from './Tidy';
 import { Dashboard } from './Dashboard';
+import { Library } from './Library';
 import type { CleanResult, Finding, Preview, TrashInfo } from '../shared/types';
 import { inUseText } from '../shared/text';
 import { Logo } from './Logo';
@@ -86,7 +87,7 @@ function PreviewBox({ load }: { load: () => Promise<Preview> }) {
 }
 
 export function App() {
-  const [mode, setMode] = useState<'dash' | 'clean' | 'tidy'>('dash');
+  const [mode, setMode] = useState<'dash' | 'clean' | 'tidy' | 'lib'>('dash');
   const [phase, setPhase] = useState<Phase>('idle');
   const [tab, setTab] = useState<Tab>('safe');
   const [step, setStep] = useState('');
@@ -277,6 +278,9 @@ export function App() {
         <button role="tab" aria-selected={mode === 'clean'} className={`mode ${mode === 'clean' ? 'on' : ''}`} onClick={() => setMode('clean')}>
           Clean up junk
         </button>
+        <button role="tab" aria-selected={mode === 'lib'} className={`mode ${mode === 'lib' ? 'on' : ''}`} onClick={() => setMode('lib')}>
+          Apps &amp; extensions
+        </button>
         <button role="tab" aria-selected={mode === 'tidy'} className={`mode ${mode === 'tidy' ? 'on' : ''}`} onClick={() => setMode('tidy')}>
           Tidy my files
         </button>
@@ -293,6 +297,7 @@ export function App() {
       )}
 
       {mode === 'tidy' && <Tidy />}
+      {mode === 'lib' && <Library />}
 
       {mode === 'clean' && (
         <>
