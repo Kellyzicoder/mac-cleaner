@@ -32,7 +32,7 @@ function parseMdlsDate(raw: string): Date | null {
   return Number.isNaN(d.getTime()) ? null : d;
 }
 
-function mdlsDate(attr: string): (appPath: string) => Promise<Date | null> {
+export function mdlsDate(attr: string): (appPath: string) => Promise<Date | null> {
   return async (appPath) => {
     try {
       const { stdout } = await run('mdls', ['-name', attr, '-raw', appPath], { timeout: 8000 });
@@ -43,7 +43,7 @@ function mdlsDate(attr: string): (appPath: string) => Promise<Date | null> {
   };
 }
 
-async function exists(p: string): Promise<boolean> {
+export async function exists(p: string): Promise<boolean> {
   return (await lstatSafe(p)) !== null;
 }
 
@@ -58,7 +58,7 @@ export function cameWithMac(appPath: string, bundleId: string | undefined, hasSt
   return false;
 }
 
-async function findApps(dirs: string[]): Promise<string[]> {
+export async function findApps(dirs: string[]): Promise<string[]> {
   const apps: string[] = [];
   for (const dir of dirs) {
     let entries: import('fs').Dirent[];

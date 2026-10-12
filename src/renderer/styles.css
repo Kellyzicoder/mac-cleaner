@@ -197,3 +197,12 @@ button.tile:hover { border-color: rgba(255, 255, 255, 0.4); }
 .dsize { min-width: 70px; text-align: right; font-variant-numeric: tabular-nums; }
 @media (max-width: 760px) { .grid2 { grid-template-columns: 1fr; } }
 .tile .link { color: var(--link); font-weight: 600; }
+
+.libsec { display: flex; flex-direction: column; gap: 10px; margin-bottom: 14px; }
+.libtools { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.libtools select { padding: 4px 8px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.25); background: rgba(255,255,255,0.12); color: inherit; }
+.liblist { max-height: 300px; overflow: auto; display: flex; flex-direction: column; gap: 2px; }
+.librow { display: flex; align-items: center; gap: 10px; padding: 5px 4px; border-radius: 8px; cursor: pointer; }
+.librow:hover { background: rgba(255,255,255,0.08); }
+.libname { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.updres { display: flex; flex-direction: column; gap: 6px; }

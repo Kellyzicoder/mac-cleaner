@@ -155,6 +155,37 @@ export interface CleanResult {
   failed: { id: string; reason: string }[];
 }
 
+export interface AppRow {
+  id: string;
+  name: string;
+  /** When macOS last saw you open it, or null if it has no record. */
+  lastOpenedMs: number | null;
+  addedMs: number | null;
+  bytes: number;
+  fromStore: boolean;
+}
+export interface ExtRow {
+  id: string;
+  /** publisher.name, like ms-python.python */
+  name: string;
+  version: string;
+  editor: string;
+  /** VS Code does not record use. This is when it was installed (or the folder date). */
+  installedMs: number;
+  bytes: number;
+  /** An older version that the editor no longer uses. */
+  oldCopy: boolean;
+}
+export interface UpdatesInfo {
+  /** Names of macOS updates waiting, or null if I could not check. */
+  macos: string[] | null;
+  brew: string[] | null;
+  store: string[] | null;
+  hasBrew: boolean;
+  hasMas: boolean;
+}
+export interface LibTrashResult { movedIds: string[]; freedBytes: number; failed: { id: string; reason: string }[] }
+
 export interface BusyApp { id: string; name: string; cpuPercent: number; canQuit: boolean }
 export interface StartupItem { id: string; name: string; kind: 'login' | 'agent' }
 
@@ -185,6 +216,13 @@ export interface CleanerApi {
   diskAnalyze(): Promise<DiskAnalysis>;
   diskChildren(id: string): Promise<DiskEntry[]>;
   diskReveal(id: string): Promise<void>;
+  libApps(): Promise<AppRow[]>;
+  libExtensions(): Promise<ExtRow[]>;
+  /** Moves the chosen apps or extensions to the Trash (never deletes for good). */
+  libTrash(ids: string[]): Promise<LibTrashResult>;
+  /** Only looks for updates. Installs nothing. */
+  checkUpdates(): Promise<UpdatesInfo>;
+  openSoftwareUpdate(): Promise<void>;
   /** The apps using the most CPU right now. */
   busyApps(): Promise<BusyApp[]>;
   /** Asks to confirm in a native window, then quits that app politely. */

@@ -2,7 +2,7 @@ import { app, BrowserWindow, dialog, ipcMain, shell } from 'electron';
 import * as path from 'path';
 import * as os from 'os';
 import { existsSync, promises as fs } from 'fs';
-import { CleanResult, Finding, Preview } from '../shared/types';
+import { CleanResult, Finding, LibTrashResult, Preview } from '../shared/types';
 import { inUseText } from '../shared/text';
 import { readKeepList, scanAll, writeKeepList } from './scanner';
 import { protectedReason } from './safety';
@@ -10,6 +10,7 @@ import { humanSize, measure } from './fsutil';
 import { checkInUse, getSnapshot } from './apps';
 import { makePreview, previewTrash } from './preview';
 import { emptyTrash, trashInfo } from './trash';
+import { checkUpdates, listApps, listExtensions } from './library';
 import { quitApp, startupItems, topCpuApps } from './busy';
 import { collectDash, ejectDevice, netSpeed, speedTest } from './sysinfo';
 import { allowedDiskPath, analyzeDisk, listChildren } from './diskmap';
@@ -220,6 +221,61 @@ ipcMain.handle('disk-children', async (_e, id: string) => {
 ipcMain.handle('disk-reveal', (_e, id: string) => {
   const p = diskIds.get(id);
   if (p && allowedDiskPath(p, home)) shell.showItemInFolder(p);
+});
+
+let libPaths = new Map<string, string>();
+ipcMain.handle('lib-apps', async () => {
+  const r = await listApps(home);
+  for (const [k, v] of r.paths) libPaths.set(k, v);
+  return r.rows;
+});
+ipcMain.handle('lib-extensions', async () => {
+  const r = await listExtensions(home);
+  for (const [k, v] of r.paths) libPaths.set(k, v);
+  return r.rows;
+});
+ipcMain.handle('check-updates', () => checkUpdates());
+ipcMain.handle('open-software-update', () => shell.openExternal('x-apple.systempreferences:com.apple.Software-Update-Settings.extension'));
+ipcMain.handle('lib-trash', async (_e, ids: string[]): Promise<LibTrashResult> => {
+  const result: LibTrashResult = { movedIds: [], freedBytes: 0, failed: [] };
+  const snap = await getSnapshot();
+  for (const id of ids) {
+    const p = libPaths.get(id);
+    if (!p) {
+      result.failed.push({ id, reason: 'Not in the list. Refresh and try again.' });
+      continue;
+    }
+    const reason = protectedReason(p, home);
+    if (reason) {
+      result.failed.push({ id, reason });
+      continue;
+    }
+    if (id.startsWith('ext:')) {
+      const editor = id.split(':')[1];
+      const marker = editor.startsWith('Cursor') ? '/Cursor.app/' : '/Visual Studio Code';
+      if (snap.procs.some((x) => x.command.includes(marker))) {
+        result.failed.push({ id, reason: `${editor} is open. Close it first, then try again.` });
+        continue;
+      }
+    } else {
+      const using = checkInUse({ id, paths: [p] }, home, snap);
+      if (using.length > 0) {
+        result.failed.push({ id, reason: inUseText(using) });
+        continue;
+      }
+    }
+    try {
+      const m = await measure(p);
+      await shell.trashItem(p);
+      result.movedIds.push(id);
+      result.freedBytes += m.bytes;
+      libPaths.delete(id);
+    } catch (err) {
+      const hint = id.startsWith('unused-app:') ? ' macOS may need your password to remove this app. Drag it to the Trash in Finder instead.' : '';
+      result.failed.push({ id, reason: (err as Error).message + hint });
+    }
+  }
+  return result;
 });
 
 let busyPids = new Map<string, number>();
