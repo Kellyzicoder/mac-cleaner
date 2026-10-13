@@ -12,6 +12,7 @@ import { makePreview, previewTrash } from './preview';
 import { emptyTrash, trashInfo } from './trash';
 import { checkBehind, findSourceFolder, isSourceFolder, runUpdate } from './selfupdate';
 import { spawn } from 'child_process';
+import { browseLibrary, insideLibrary } from './librarybrowse';
 import { checkUpdates, listApps, listExtensions } from './library';
 import { quitApp, startupItems, topCpuApps } from './busy';
 import { collectDash, ejectDevice, netSpeed, speedTest } from './sysinfo';
@@ -294,6 +295,16 @@ ipcMain.handle('lib-extensions', async () => {
   const r = await listExtensions(home);
   for (const [k, v] of r.paths) libPaths.set(k, v);
   return r.rows;
+});
+ipcMain.handle('lib-browse', async (_e, id: string | null) => {
+  const lib = path.join(home, 'Library');
+  const target = id ? libPaths.get(id) : lib;
+  if (!target || !insideLibrary(target, home)) return { crumbs: [], entries: [], note: 'That folder is not in the list. Go back and try again.' };
+  return browseLibrary(home, target, libPaths);
+});
+ipcMain.handle('lib-reveal', (_e, id: string) => {
+  const p = libPaths.get(id);
+  if (p && insideLibrary(p, home)) shell.showItemInFolder(p);
 });
 ipcMain.handle('check-updates', () => checkUpdates());
 ipcMain.handle('open-software-update', () => shell.openExternal('x-apple.systempreferences:com.apple.Software-Update-Settings.extension'));
