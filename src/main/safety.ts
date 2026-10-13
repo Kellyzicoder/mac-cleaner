@@ -20,6 +20,9 @@ export function protectedReason(target: string, home: string): string | null {
   const p = path.resolve(target);
   const h = path.resolve(home);
 
+  // Photoshop scratch files live in the system temp folder, outside the home folder.
+  if (/^\/(?:private\/)?var\/folders\/[^/]+\/[^/]+\/T\/Photoshop Temp\d+$/.test(p)) return null;
+
   // Apps you installed yourself in /Applications may be offered. The ones that came with macOS never are.
   if (/^\/Applications\/(?:[^/]+\/)?[^/]+\.app$/.test(p)) {
     if (MAC_OWN_APPS.has(path.basename(p)) || p.startsWith('/Applications/Utilities/')) return 'It came with macOS.';

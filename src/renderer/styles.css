@@ -206,3 +206,8 @@ button.tile:hover { border-color: rgba(255, 255, 255, 0.4); }
 .librow:hover { background: rgba(255,255,255,0.08); }
 .libname { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .updres { display: flex; flex-direction: column; gap: 6px; }
+
+.libitem { display: flex; flex-direction: column; }
+.libwhy { margin: 2px 0 8px 30px; padding: 8px 12px; border-radius: 8px; background: rgba(255,255,255,0.08); font-size: 14px; display: flex; flex-direction: column; gap: 4px; }
+.crumbs { font-size: 14px; }
+.liblist .librow .chip { white-space: nowrap; }
