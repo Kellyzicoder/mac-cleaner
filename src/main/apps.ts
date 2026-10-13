@@ -133,6 +133,14 @@ export function ownersFor(f: Pick<Finding, 'id' | 'paths'>, home: string): Match
     });
   }
 
+  if (prefix === 'libfile') {
+    return f.paths.map((p) => cacheMatcher(path.basename(p).replace(/\.(savedState|plist)$/, '')));
+  }
+
+  if (prefix.startsWith('photoshop')) {
+    return [{ label: 'Adobe Photoshop', bundleIds: ['com.adobe.Photoshop'], appNameIncludes: ['Photoshop'], procNames: ['adobe photoshop'] }];
+  }
+
   if (prefix === 'unused-app') {
     const name = path.basename(f.paths[0], '.app');
     return [{ label: name, appNames: [name] }];

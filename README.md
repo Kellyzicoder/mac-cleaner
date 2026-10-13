@@ -55,6 +55,14 @@ The first screen shows your Mac at a glance, in a purple look:
 - **Empty Trash** (top of the window) deletes what is in the Trash **for good**. It shows how much is in there, lets you look inside, and asks you to confirm in a macOS window first. It also empties the Trash on plugged-in drives. The first time, macOS asks if the app may control Finder. Say OK.
 - **Always keep this** hides an item from every future scan.
 
+## Photoshop scratch files and the Library folder
+
+If Photoshop says "scratch disks are full", run a scan. Old `Photoshop Temp` files, Photoshop caches and crash-recovery files show up under **Photoshop scratch**. Temp files are only offered when Photoshop is closed.
+
+The **Library files** tab lets you look through `~/Library` folder by folder. Every item has a label (Safe, Careful or Do not delete) and a **Why?** that says what it is. Folders like Keychains, Mail and Messages cannot be picked. Folders with no matching installed app are marked as a possible leftover. Picked items go to the Trash.
+
+![Library files](docs/screenshots/library.png)
+
 ## Updating the app
 
 On the Overview there is a **Mac Purificator updates** card. It looks at GitHub (it changes nothing). If there is a newer version, press **Update and reopen**. After you confirm, the app pulls the new code, builds it, replaces itself in Applications and reopens. It needs git and Node installed, and the `mac-cleaner` folder (it looks in Downloads, your home folder and Documents, or you can choose it).

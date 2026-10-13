@@ -195,6 +195,27 @@ export interface AppUpdateInfo {
   message: string;
 }
 
+export type LibVerdict = 'safe' | 'careful' | 'never';
+export interface LibEntry {
+  id: string;
+  name: string;
+  bytes: number;
+  isDir: boolean;
+  verdict: LibVerdict;
+  /** What this folder is. */
+  what: string;
+  /** Why it is safe, risky or off limits. */
+  why: string;
+  canTrash: boolean;
+  /** No installed app matches this name, so it may be a leftover. */
+  orphan: boolean;
+}
+export interface LibBrowse {
+  crumbs: { id: string; name: string }[];
+  entries: LibEntry[];
+  note?: string;
+}
+
 export interface BusyApp { id: string; name: string; cpuPercent: number; canQuit: boolean }
 export interface StartupItem { id: string; name: string; kind: 'login' | 'agent' }
 
@@ -232,6 +253,9 @@ export interface CleanerApi {
   /** Asks first, then updates, rebuilds, installs and reopens the app. */
   appUpdateRun(): Promise<{ ok: boolean; message: string }>;
   onUpdateProgress(cb: (line: string) => void): () => void;
+  /** Looks inside ~/Library (or a folder in it) and explains every item. id null = the Library folder. */
+  libBrowse(id: string | null): Promise<LibBrowse>;
+  libReveal(id: string): Promise<void>;
   libApps(): Promise<AppRow[]>;
   libExtensions(): Promise<ExtRow[]>;
   /** Moves the chosen apps or extensions to the Trash (never deletes for good). */
