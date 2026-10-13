@@ -3,6 +3,7 @@ import { Finding, RawFinding } from '../shared/types';
 import { runRules } from './rules';
 import { scanDevJunk } from './devjunk';
 import { scanBigFiles, scanDuplicates } from './bigfiles';
+import { scanPhotoshop } from './photoshop';
 import { scanHiddenHome } from './hidden';
 import { AppDeps, scanUnusedApps } from './unusedapps';
 import { protectedReason } from './safety';
@@ -25,6 +26,7 @@ export async function scanAll(opts: ScanOptions): Promise<Finding[]> {
   const step = opts.onStep ?? (() => undefined);
   const all: RawFinding[] = [];
   all.push(...(await runRules(opts.home, step, opts.now)));
+  all.push(...(await scanPhotoshop(opts.home, step)));
   all.push(...(await scanDevJunk(opts.home, step, opts.now)));
   all.push(...(await scanHiddenHome(opts.home, step)));
   all.push(...(await scanUnusedApps(opts.home, step, opts.now, opts.apps)));

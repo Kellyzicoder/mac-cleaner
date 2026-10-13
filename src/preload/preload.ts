@@ -35,6 +35,8 @@ const api: CleanerApi = {
     ipcRenderer.on('update-progress', h);
     return () => ipcRenderer.removeListener('update-progress', h);
   },
+  libBrowse: (id) => ipcRenderer.invoke('lib-browse', id),
+  libReveal: (id) => ipcRenderer.invoke('lib-reveal', id),
   libApps: () => ipcRenderer.invoke('lib-apps'),
   libExtensions: () => ipcRenderer.invoke('lib-extensions'),
   libTrash: (ids) => ipcRenderer.invoke('lib-trash', ids),
